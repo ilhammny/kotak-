@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contoh Kotak</title>
+<style>
+  #kotak {
+    width: 300px; 
+    height: 200px;
+    border: 1px solid black;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-wrap: wrap;
+  }
+  .kotakKecil {
+    box-sizing: border-box;
+  }
+</style>
+</head>
+<body>
+
+<label for="inputPanjang">Panjang:</label>
+<input type="number" id="inputPanjang" min="1" max="100" value="50">
+<label for="inputLebar">Lebar:</label>
+<input type="number" id="inputLebar" min="1" max="100" value="50">
+<button onclick="tampilkanKotak()">Tampilkan Kotak</button>
+
+<div id="kotak"></div>
+
+<script>
+  function tampilkanKotak() {
+    var panjang = parseInt(document.getElementById('inputPanjang').value);
+    var lebar = parseInt(document.getElementById('inputLebar').value);
+    
+    if (panjang > 100 || lebar > 100) {
+      alert('Ukuran tidak boleh lebih besar dari 100');
+      return;
+    }
+    
+    var kotakUtama = document.getElementById('kotak');
+    var gridWidth = kotakUtama.offsetWidth;
+    var gridHeight = kotakUtama.offsetHeight;
+    var kotakKecilSudahAda = kotakUtama.getElementsByClassName('kotakKecil');
+    var grid = new Array(gridHeight);
+    for (var i = 0; i < gridHeight; i++) {
+      grid[i] = new Array(gridWidth);
+      for (var j = 0; j < gridWidth; j++) {
+        grid[i][j] = false;
+      }
+    }
+
+    for (var k = 0; k < kotakKecilSudahAda.length; k++) {
+      var rect = kotakKecilSudahAda[k].getBoundingClientRect();
+      var topIndex = Math.floor(rect.top - kotakUtama.getBoundingClientRect().top);
+      var leftIndex = Math.floor(rect.left - kotakUtama.getBoundingClientRect().left);
+      var rightIndex = Math.min(leftIndex + rect.width, gridWidth);
+      var bottomIndex = Math.min(topIndex + rect.height, gridHeight);
+
+      for (var y = topIndex; y < bottomIndex; y++) {
+        for (var x = leftIndex; x < rightIndex; x++) {
+          grid[y][x] = true;
+        }
+      }
+    }
+
+    var kotakKecil = document.createElement('div');
+    kotakKecil.className = 'kotakKecil';
+
+    var warna = getRandomColor();
+    kotakKecil.style.backgroundColor = warna;
+    
+    // Mengatur posisi kotak baru
+    kotakKecil.style.width = panjang + 'px';
+    kotakKecil.style.height = lebar + 'px';
+
+    // Memastikan kotak baru dapat menempel pada kotak utama
+    kotakKecil.style.position = 'absolute';
+
+    var found = false;
+    for (var y = 0; y <= gridHeight - lebar && !found; y++) {
+      for (var x = 0; x <= gridWidth - panjang; x++) {
+        var canPlace = true;
+        for (var dy = 0; dy < lebar && canPlace; dy++) {
+          for (var dx = 0; dx < panjang; dx++) {
+            if (grid[y + dy][x + dx]) {
+              canPlace = false;
+              break;
+            }
+          }
+        }
+        if (canPlace) {
+          kotakKecil.style.top = y + 'px';
+          kotakKecil.style.left = x + 'px';
+          found = true;
+          break;
+        }
+      }
+    }
+
+    if (!found) {
+      alert('Kotak tidak muat dalam kotak utama');
+      return;
+    }
+
+    kotakUtama.appendChild(kotakKecil);
+    updateGrid(grid, parseInt(kotakKecil.style.top), parseInt(kotakKecil.style.left), panjang, lebar);
+  }
+  
+  function updateGrid(grid, top, left, width, height) {
+    for (var y = top; y < top + height; y++) {
+      for (var x = left; x < left + width; x++) {
+        grid[y][x] = true;
+      }
+    }
+  }
+
+  function getRandomColor() {
+    var letters = '0123456789ABCDEF';
+    var color = '#';
+    for (var i = 0; i < 6; i++) {
+      color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
+  }
+</script>
+
+</body>
+</html>
